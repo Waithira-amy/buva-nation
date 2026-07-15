@@ -62,7 +62,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-white/10 text-center text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} BUVA Nation Africa. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Perfectors Creative Hub. All rights reserved.</p>
         </div>
       </div>
     </footer>
