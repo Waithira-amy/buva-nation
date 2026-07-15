@@ -1,0 +1,46 @@
+generator client {
+provider = "prisma-client-js"
+}
+
+datasource db {
+provider = "postgresql"
+url      = env("DATABASE_URL")
+}
+
+model Category {
+id        Int       @id @default(autoincrement())
+name      String    @unique
+slug      String    @unique
+nominees  Nominee[]
+createdAt DateTime  @default(now())
+}
+
+model Nominee {
+id            Int       @id @default(autoincrement())
+name          String
+slug          String    @unique
+totalVotes    Int       @default(0)
+pinCode       String    @default("1234")
+hasChangedPin Boolean   @default(false)
+categoryId    Int
+category      Category  @relation(fields: [categoryId], references: [id])
+votes         Vote[]
+createdAt     DateTime  @default(now())
+
+@@unique([name, categoryId])
+}
+
+model Vote {
+id                 Int      @id @default(autoincrement())
+amount             Int
+
+voteCount          Int
+
+phoneNumber        String
+mpesaReceiptNumber String?  @unique
+status             String   @default("PENDING")
+checkoutRequestId  String?  @unique
+nomineeId          Int
+nominee            Nominee  @relation(fields: [nomineeId], references: [id])
+createdAt          DateTime @default(now())
+}
