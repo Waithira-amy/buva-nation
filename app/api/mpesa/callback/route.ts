@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+// Setup Bulletproof Database Connection
+const connectionString = `${process.env.DATABASE_URL}`;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 export async function POST(req: Request) {
   try {
@@ -17,32 +23,27 @@ export async function POST(req: Request) {
     const checkoutRequestId = stkCallback.CheckoutRequestID;
     const resultCode = stkCallback.ResultCode;
 
-    // ResultCode 0 means the payment was a success
     if (resultCode === 0) {
       const callbackMetadata = stkCallback.CallbackMetadata?.Item || [];
       const receiptItem = callbackMetadata.find((item: any) => item.Name === "MpesaReceiptNumber");
       const mpesaReceiptNumber = receiptItem ? receiptItem.Value : null;
 
-      // Find the pending vote ticket
       const pendingVote = await prisma.vote.findUnique({ 
         where: { checkoutRequestId: checkoutRequestId } 
       });
 
       if (pendingVote && pendingVote.status === "PENDING") {
-        // 1. Mark vote as SUCCESS
         await prisma.vote.update({
           where: { id: pendingVote.id },
           data: { status: "SUCCESS", mpesaReceiptNumber: mpesaReceiptNumber }
         });
 
-        // 2. Increment Nominee's total votes
         await prisma.nominee.update({
           where: { id: pendingVote.nomineeId },
           data: { totalVotes: { increment: pendingVote.voteCount } }
         });
       }
     } else {
-      // Payment failed or was cancelled by user
       await prisma.vote.updateMany({
         where: { checkoutRequestId: checkoutRequestId, status: "PENDING" },
         data: { status: "FAILED" }

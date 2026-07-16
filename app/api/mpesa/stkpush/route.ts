@@ -1,13 +1,25 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+// 1. Setup Bulletproof Database Connection for Prisma 7
+const connectionString = `${process.env.DATABASE_URL}`;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 export async function POST(req: Request) {
   try {
     const { phoneNumber, amount, votes, nomineeName } = await req.json();
 
-    // 1. Get Safaricom Token (Live URL)
+    // Safety check for missing Vercel environment variables
+    if (!process.env.DATABASE_URL || !process.env.MPESA_CONSUMER_KEY) {
+       console.error("🚨 Missing Environment Variables!");
+       return NextResponse.json({ success: false, message: "Server configuration error. Keys missing." }, { status: 500 });
+    }
+
+    // 2. Get Safaricom Token (Live URL)
     const auth = Buffer.from(`${process.env.MPESA_CONSUMER_KEY}:${process.env.MPESA_CONSUMER_SECRET}`).toString('base64');
     const tokenRes = await fetch("https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
       headers: { Authorization: `Basic ${auth}` },
@@ -22,16 +34,16 @@ export async function POST(req: Request) {
     const tokenData = await tokenRes.json();
     const accessToken = tokenData.access_token;
 
-    // 2. Format Phone Number
+    // 3. Format Phone Number
     let formattedPhone = phoneNumber.replace(/[^0-9]/g, '');
     if (formattedPhone.startsWith('0')) formattedPhone = '254' + formattedPhone.slice(1);
     if (formattedPhone.startsWith('+')) formattedPhone = formattedPhone.slice(1);
 
-    // 3. Generate Timestamp & Password
+    // 4. Generate Timestamp & Password
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
     const password = Buffer.from(`${process.env.MPESA_SHORTCODE}${process.env.MPESA_PASSKEY}${timestamp}`).toString('base64');
 
-    // 4. Find Nominee in DB
+    // 5. Find Nominee in DB
     const nomineeRecord = await prisma.nominee.findFirst({
         where: { name: { equals: nomineeName, mode: 'insensitive' } }
     });
@@ -40,10 +52,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Nominee not found in Database." }, { status: 404 });
     }
     
-    // Using the exact variable name from your Vercel screenshot
     const callbackUrl = process.env.MPESA_CALLBACK_URL || "https://buva-nation.vercel.app/api/mpesa/callback";
 
-    // 5. Send STK Push Request
+    // 6. Send STK Push Request
     const response = await fetch("https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest", {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
@@ -51,20 +62,20 @@ export async function POST(req: Request) {
             BusinessShortCode: process.env.MPESA_SHORTCODE,
             Password: password,
             Timestamp: timestamp,
-            TransactionType: "CustomerPayBillOnline", // Ensure this matches your till/paybill type
+            TransactionType: "CustomerPayBillOnline",
             Amount: amount,
             PartyA: formattedPhone,
             PartyB: process.env.MPESA_SHORTCODE,
             PhoneNumber: formattedPhone,
             CallBackURL: callbackUrl,
-            AccountReference: nomineeRecord.id.toString(), // Connects payment directly to Nominee ID
+            AccountReference: nomineeRecord.id.toString(),
             TransactionDesc: "YWCA Awards Voting"
         })
     });
 
     const data = await response.json();
 
-    // 6. Save PENDING vote to Database
+    // 7. Save PENDING vote to Database
     if (data.ResponseCode === "0") {
       await prisma.vote.create({
         data: { 
