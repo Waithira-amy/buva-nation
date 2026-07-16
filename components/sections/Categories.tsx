@@ -5,7 +5,6 @@ import { toPng } from "html-to-image";
 import QRCode from "react-qr-code";
 import Link from "next/link";
 
-// Real YWCA Nominees Data
 const categoriesData = [
   { 
     id: 1, 
@@ -50,7 +49,6 @@ export default function Categories() {
   const [imageError, setImageError] = useState(false);
   const posterRef = useRef<HTMLDivElement>(null);
 
-  // Generates the internal routing link for the "Click to Vote" button
   const getVoteUrl = () => {
     if (!activeCategory || !selectedNominee) return "";
     const categorySlug = encodeURIComponent(activeCategory.name.replace(/\s+/g, '-'));
@@ -58,16 +56,14 @@ export default function Categories() {
     return `/vote/${categorySlug}/${nomineeSlug}`;
   };
 
-  // Generates the absolute URL for the QR Code and Share button
+  // FIXED: Absolute Share URL points to the new domain!
   const getAbsoluteShareUrl = () => {
     if (!activeCategory || !selectedNominee) return "";
     const categorySlug = encodeURIComponent(activeCategory.name.replace(/\s+/g, '-'));
     const nomineeSlug = encodeURIComponent(selectedNominee.replace(/\s+/g, '-'));
-    return `https://buvanation.co.ke/vote/${categorySlug}/${nomineeSlug}`;
+    return `https://buvanationafrica.co.ke/vote/${categorySlug}/${nomineeSlug}`;
   };
 
-  // Automatically converts a nominee's name into a lowercase, hyphenated filename 
-  // e.g., "Stanley Stanix Ochieng" -> "stanley-stanix-ochieng"
   const getImageFileName = () => {
     if (!selectedNominee) return "";
     return selectedNominee
@@ -83,7 +79,7 @@ export default function Categories() {
       const dataUrl = await toPng(posterRef.current, {
         quality: 1,
         pixelRatio: 2,
-        style: { backgroundColor: '#020617' }, // slate-950 background
+        style: { backgroundColor: '#020617' }, 
         filter: (node) => {
           if (node instanceof HTMLElement) {
             return node.getAttribute('data-ignore') !== 'true';
@@ -186,14 +182,12 @@ export default function Categories() {
           </div>
         )}
 
-        {/* Selected Nominee Modal */}
         {selectedNominee && activeCategory && (
           <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 backdrop-blur-md p-4 overflow-y-auto animate-in fade-in duration-300">
             <div className="flex flex-col gap-4 w-full max-w-sm my-auto py-8">
               
               <div ref={posterRef} className="bg-slate-950 border border-white/10 rounded-3xl w-full relative overflow-hidden pb-6 shadow-[0_0_40px_rgba(6,182,212,0.15)] animate-in zoom-in-95 duration-300">
                 
-                {/* Close Button (Ignored in download) */}
                 <button 
                   data-ignore="true"
                   onClick={() => setSelectedNominee(null)}
@@ -202,7 +196,6 @@ export default function Categories() {
                   <X className="w-4 h-4" />
                 </button>
 
-                {/* Poster Header */}
                 <div className="h-32 bg-gradient-to-br from-purple-900 to-amber-900 flex items-center justify-center relative">
                   <div className="absolute inset-0 bg-black/20" />
                   <span className="font-serif font-bold text-2xl text-white relative z-10 flex items-center gap-2">
@@ -210,10 +203,8 @@ export default function Categories() {
                   </span>
                 </div>
 
-                {/* Poster Body */}
                 <div className="p-8 pb-0 flex flex-col items-center text-center -mt-16 relative z-10">
                   
-                  {/* Standard HTML Image Tag for flawless downloading */}
                   <div className="w-32 h-32 rounded-full bg-slate-900 border-4 border-cyan-400 flex items-center justify-center mb-5 shadow-2xl overflow-hidden relative">
                      <img 
                       src={imageError ? "/logo-icon.png" : `/nominees/${getImageFileName()}.jpg`} 
@@ -231,13 +222,11 @@ export default function Categories() {
                   <p className="text-purple-400 font-medium text-sm border-b border-white/10 pb-6 w-full">{activeCategory.name}</p>
 
                   <div className="mt-8 flex flex-col items-center w-full">
-                    {/* QR Code wrapped in a Link for mobile tapping */}
                     <Link href={getVoteUrl()} className="bg-white p-2.5 rounded-2xl shadow-xl hover:scale-105 transition-transform cursor-pointer mb-3">
                       <QRCode value={getAbsoluteShareUrl()} size={96} level="H" />
                     </Link>
                     <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1 mb-6 font-bold">Scan to Vote</p>
                     
-                    {/* Explicit Vote Button (Ignored in download) */}
                     <Link 
                       href={getVoteUrl()}
                       data-ignore="true"
@@ -250,7 +239,6 @@ export default function Categories() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-3 w-full animate-in slide-in-from-bottom-4 duration-500 delay-150">
                 <button onClick={handleDownload} disabled={isDownloading} className="flex-1 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg transition-colors disabled:opacity-50">
                   <Download className="w-4 h-4" /> {isDownloading ? "Saving..." : "Save Poster"}

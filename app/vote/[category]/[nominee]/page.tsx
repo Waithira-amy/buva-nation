@@ -9,11 +9,11 @@ import Link from "next/link";
 export default function VotePage() {
   const params = useParams();
   
-  // Clean up URL parameters for display and database lookup (e.g. "Mr-YWCA" -> "Mr YWCA")
   const category = decodeURIComponent(params.category as string).replace(/-/g, " ");
   const nominee = decodeURIComponent(params.nominee as string).replace(/-/g, " ");
 
-  const voteUrl = `https://buva-nation.vercel.app/vote/${params.category}/${params.nominee}`;
+  // FIXED: Now uses the new custom domain!
+  const voteUrl = `https://buvanationafrica.co.ke/vote/${params.category}/${params.nominee}`;
 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [votes, setVotes] = useState<number | "">(1);
@@ -39,8 +39,8 @@ export default function VotePage() {
           phoneNumber,
           amount: finalAmount,
           votes: finalVotes,             
-          categorySlug: category, // FIXED: Now sending the clean category name without hyphens
-          nomineeName: nominee,   // FIXED: Now sending the clean nominee name without hyphens
+          categorySlug: category, 
+          nomineeName: nominee,   
         }),
       });
 
@@ -69,13 +69,9 @@ export default function VotePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100 p-6 pt-24 pb-24 font-sans relative overflow-hidden">
-      
-      {/* Background Styling */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-slate-950 to-slate-950 -z-10 pointer-events-none" />
 
       <div className="max-w-md w-full bg-slate-900 border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-        
-        {/* Decorative background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-cyan-500/20 blur-[60px] rounded-full pointer-events-none" />
 
         <Link href="/#categories" className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-xs font-bold uppercase tracking-wider mb-6 transition-colors">
@@ -91,7 +87,6 @@ export default function VotePage() {
         </p>
 
         <form onSubmit={handleVoteSubmit} className="space-y-6 relative z-10">
-          
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
               M-Pesa Phone Number
@@ -178,12 +173,7 @@ export default function VotePage() {
             Scan to share this nominee
           </p>
           <div className="bg-white p-2.5 rounded-2xl shadow-lg">
-            <QRCode
-              value={voteUrl}
-              size={100} 
-              level="H"  
-              className="rounded-lg"
-            />
+            <QRCode value={voteUrl} size={100} level="H" className="rounded-lg" />
           </div>
         </div>
 
