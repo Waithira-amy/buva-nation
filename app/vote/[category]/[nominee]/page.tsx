@@ -49,7 +49,7 @@ export default function VotePage() {
       if (result.success) {
         setMessage({
           type: "success",
-          text: "🎉 Payment Prompt Sent! Please check your phone to enter your M-Pesa PIN.",
+          text: "Thank you for voting for Mr and Miss YWCA🎉 Please check your phone to enter your M-Pesa PIN.",
         });
       } else {
         setMessage({

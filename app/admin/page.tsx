@@ -52,13 +52,13 @@ export default async function AdminDashboard() {
           </div>
 
           <div className="bg-slate-900 border border-white/10 p-6 rounded-3xl shadow-xl">
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Gross Revenue</p>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Total Amount</p>
             <p className="text-4xl text-cyan-400 font-black">Ksh {grossRevenue.toLocaleString()}</p>
           </div>
 
           <div className="bg-slate-900 border border-white/10 p-6 rounded-3xl shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Net Profit</p>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Amount After Deductions</p>
             <p className={`text-4xl font-black relative z-10 ${netRevenue >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
               Ksh {netRevenue.toLocaleString()}
             </p>
@@ -83,7 +83,6 @@ export default async function AdminDashboard() {
                     <tr className="text-slate-500 border-b border-white/10">
                       <th className="pb-3 font-bold uppercase tracking-wider w-16">Rank</th>
                       <th className="pb-3 font-bold uppercase tracking-wider">Nominee Name</th>
-                      <th className="pb-3 font-bold uppercase tracking-wider">Access PIN</th>
                       <th className="pb-3 font-bold uppercase tracking-wider text-right">Total Votes</th>
                     </tr>
                   </thead>
@@ -92,7 +91,6 @@ export default async function AdminDashboard() {
                       <tr key={nominee.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
                         <td className="py-3 text-slate-400 font-medium">#{index + 1}</td>
                         <td className="py-3 font-bold text-slate-200">{nominee.name}</td>
-                        <td className="py-3 font-mono text-purple-400">{nominee.pinCode}</td>
                         <td className="py-3 text-right">
                           <span className="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-full font-bold">
                             {nominee.totalVotes}
