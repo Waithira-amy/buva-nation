@@ -4,7 +4,7 @@ import Hero from "../components/sections/Hero";
 import About from "../components/sections/About";
 import Team from "../components/sections/Team";
 import Categories from "../components/sections/Categories"; 
-
+import NomineePortal from "../components/sections/NomineePortal"; // NEW IMPORT
 
 export default function Home() {
   return (
@@ -24,8 +24,10 @@ export default function Home() {
       {/* 4. Categories Section  */}
       <Categories />
 
+      {/* 5. Nominee Portal Section  */}
+      <NomineePortal />
 
-      {/* 5. Footer  */}
+      {/* 6. Footer  */}
       <Footer />
       
     </main>
