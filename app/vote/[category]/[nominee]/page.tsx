@@ -9,11 +9,11 @@ import Link from "next/link";
 export default function VotePage() {
   const params = useParams();
   
-  // Clean up URL parameters for display (e.g. "Mr-YWCA-Nairobi-Branch" -> "Mr YWCA Nairobi Branch")
+  // Clean up URL parameters for display and database lookup (e.g. "Mr-YWCA" -> "Mr YWCA")
   const category = decodeURIComponent(params.category as string).replace(/-/g, " ");
   const nominee = decodeURIComponent(params.nominee as string).replace(/-/g, " ");
 
-  const voteUrl = `https://buvanation.co.ke/vote/${params.category}/${params.nominee}`;
+  const voteUrl = `https://buva-nation.vercel.app/vote/${params.category}/${params.nominee}`;
 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [votes, setVotes] = useState<number | "">(1);
@@ -32,7 +32,6 @@ export default function VotePage() {
     setMessage({ type: "", text: "" });
 
     try {
-      // Points to the exact M-Pesa backend logic we will set up in the next phase
       const response = await fetch("/api/mpesa/stkpush", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -40,8 +39,8 @@ export default function VotePage() {
           phoneNumber,
           amount: finalAmount,
           votes: finalVotes,             
-          categorySlug: params.category, 
-          nomineeName: params.nominee,   
+          categorySlug: category, // FIXED: Now sending the clean category name without hyphens
+          nomineeName: nominee,   // FIXED: Now sending the clean nominee name without hyphens
         }),
       });
 
