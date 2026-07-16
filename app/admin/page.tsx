@@ -83,6 +83,7 @@ export default async function AdminDashboard() {
                     <tr className="text-slate-500 border-b border-white/10">
                       <th className="pb-3 font-bold uppercase tracking-wider w-16">Rank</th>
                       <th className="pb-3 font-bold uppercase tracking-wider">Nominee Name</th>
+                      <th className="pb-3 font-bold uppercase tracking-wider">Nominee ID</th>
                       <th className="pb-3 font-bold uppercase tracking-wider text-right">Total Votes</th>
                     </tr>
                   </thead>
@@ -91,6 +92,7 @@ export default async function AdminDashboard() {
                       <tr key={nominee.id} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
                         <td className="py-3 text-slate-400 font-medium">#{index + 1}</td>
                         <td className="py-3 font-bold text-slate-200">{nominee.name}</td>
+                        <td className="py-3 font-mono text-purple-400">ID: {nominee.id}</td>
                         <td className="py-3 text-right">
                           <span className="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-full font-bold">
                             {nominee.totalVotes}
