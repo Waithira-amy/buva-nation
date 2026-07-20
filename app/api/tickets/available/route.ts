@@ -21,6 +21,6 @@ export async function GET() {
     return NextResponse.json({ flashSold });
   } catch (error) {
     console.error("Error fetching ticket stats:", error);
-    return NextResponse.json({ flashSold: 50 }); // Fallback to prevent overselling on error
+    return NextResponse.json({ flashSold: 50 }); 
   }
 }

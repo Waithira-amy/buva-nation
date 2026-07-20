@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     const callbackUrl = "https://buvanationafrica.co.ke";
 
-    // 5. Trigger STK Push
+    // 5. Trigger STK Push (Reverted to PayBill, matching MTA's successful setup)
     const response = await fetch("https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest", {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
             BusinessShortCode: process.env.MPESA_SHORTCODE,
             Password: password,
             Timestamp: timestamp,
-            TransactionType: "CustomerBuyGoodsOnline", 
+            TransactionType: "CustomerPayBillOnline", 
             Amount: amount,
             PartyA: formattedPhone,
             PartyB: process.env.MPESA_SHORTCODE, 
