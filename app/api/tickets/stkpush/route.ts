@@ -3,7 +3,6 @@ import { PrismaClient } from "@prisma/client";
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-// Set up the Neon connection properly for Vercel
 const pool = new Pool({ connectionString: process.env.DATABASE_URL as string });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
@@ -47,7 +46,7 @@ export async function POST(req: Request) {
             BusinessShortCode: process.env.MPESA_SHORTCODE,
             Password: password,
             Timestamp: timestamp,
-            TransactionType: "CustomerBuyGoodsOnline", // USING TILL NUMBER
+            TransactionType: "CustomerPayBillOnline", // RESTORED TO PAYBILL TO MATCH MTA
             Amount: amount,
             PartyA: formattedPhone,
             PartyB: process.env.MPESA_SHORTCODE,
@@ -71,14 +70,12 @@ export async function POST(req: Request) {
           status: "PENDING" 
         }
       });
-      // Return the newTicket ID so the frontend can redirect to the QR code page
       return NextResponse.json({ success: true, message: "STK Push sent successfully.", ticketId: newTicket.id });
     } else {
       console.error("🚨 Safaricom STK Push Error:", data);
       return NextResponse.json({ success: false, message: data.errorMessage || "Failed to trigger M-Pesa." });
     }
   } catch (error: any) {
-    // THIS is the new logging that will show up in Vercel!
     console.error("🚨 CRITICAL STK PUSH ERROR:", error.message, error.stack);
     return NextResponse.json({ 
       success: false, 
