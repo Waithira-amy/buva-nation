@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-// FIX 1: Bypass Node.js SSL Certificate Error for Safaricom Local Testing
+// Bypass Node.js SSL Certificate Error for Safaricom Local Testing
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 const connectionString = `${process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL}`;
@@ -15,7 +15,17 @@ export async function POST(req: Request) {
   try {
     const { phoneNumber, amount, ticketType } = await req.json();
 
-    // 1. Get Safaricom Token
+    // 1. Check if Flash Sale is sold out
+    if (ticketType === "FLASH") {
+        const count = await prisma.ticket.count({
+           where: { ticketType: "FLASH", status: { in: ["PAID", "SCANNED", "PENDING"] } }
+        });
+        if (count >= 50) {
+           return NextResponse.json({ success: false, message: "Flash Sale tickets are officially sold out! Please select Advanced Tickets." });
+        }
+    }
+
+    // 2. Get Safaricom Token
     const auth = Buffer.from(`${process.env.MPESA_CONSUMER_KEY}:${process.env.MPESA_CONSUMER_SECRET}`).toString('base64');
     const tokenRes = await fetch("https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
       headers: { Authorization: `Basic ${auth}` },
@@ -23,23 +33,22 @@ export async function POST(req: Request) {
     });
     
     if (!tokenRes.ok) {
-        console.error("Safaricom Auth Failed");
         return NextResponse.json({ success: false, message: "Failed to authenticate with Safaricom." });
     }
     
     const tokenData = await tokenRes.json();
     const accessToken = tokenData.access_token;
 
-    // 2. Format Phone Number
+    // 3. Format Phone Number
     let formattedPhone = phoneNumber.replace(/[^0-9]/g, '');
     if (formattedPhone.startsWith('0')) formattedPhone = '254' + formattedPhone.slice(1);
     if (formattedPhone.startsWith('+')) formattedPhone = formattedPhone.slice(1);
 
-    // 3. Safaricom Passwords
+    // 4. Safaricom Passwords
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
     const password = Buffer.from(`${process.env.MPESA_SHORTCODE}${process.env.MPESA_PASSKEY}${timestamp}`).toString('base64');
 
-    // 4. Create PENDING ticket in Database FIRST (Exact MTA Logic)
+    // 5. Create PENDING ticket in Database
     const newTicket = await prisma.ticket.create({
       data: {
         ticketType: ticketType,
@@ -49,10 +58,11 @@ export async function POST(req: Request) {
       }
     });
 
-    // 🚨 CRITICAL FIX: Hardcoded domain for Buva Nation
-    const callbackUrl = "https://buvanationafrica.co.ke";
+    // 🚨 THE MTA FIX: We MUST hardcode the exact 'www' domain here. 
+    // Safaricom Daraja will instantly drop the request if Vercel redirects from non-www to www.
+    const callbackUrl = "https://www.buvanationafrica.co.ke";
 
-    // 5. Trigger STK Push (UPDATED FOR TILL NUMBER: CustomerBuyGoodsOnline)
+    // 6. Trigger STK Push (Restored exact MTA logic for Till Numbers)
     const response = await fetch("https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest", {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
@@ -63,18 +73,17 @@ export async function POST(req: Request) {
             TransactionType: "CustomerBuyGoodsOnline", // Fixed for Till Number
             Amount: amount,
             PartyA: formattedPhone,
-            // Fallback to shortcode if TILL_NUMBER isn't set in Vercel
-            PartyB: process.env.MPESA_TILL_NUMBER || process.env.MPESA_SHORTCODE, 
+            PartyB: process.env.MPESA_TILL_NUMBER || process.env.MPESA_SHORTCODE, // PartyB must be the Till Number!
             PhoneNumber: formattedPhone,
             CallBackURL: `${callbackUrl}/api/tickets/callback`, 
-            AccountReference: "Buva Nation Tickets", 
-            TransactionDesc: `YWCA ${ticketType} Ticket`
+            AccountReference: "Buva Tickets", 
+            TransactionDesc: `Buva ${ticketType} Ticket`
         })
     });
 
     const data = await response.json();
 
-    // 6. Process Safaricom Response
+    // 7. Process Safaricom Response
     if (data.ResponseCode === "0") {
       await prisma.ticket.update({
         where: { id: newTicket.id },
@@ -85,8 +94,8 @@ export async function POST(req: Request) {
       console.error("Safaricom Error:", data);
       return NextResponse.json({ success: false, message: data.errorMessage || "M-Pesa request rejected." });
     }
-  } catch (error: any) {
-    console.error("Ticket STK Push Error:", error.message, error.stack);
+  } catch (error) {
+    console.error("🚨 CRITICAL STK PUSH ERROR:", error);
     return NextResponse.json({ success: false, message: "Server error triggering M-Pesa." }, { status: 500 });
   }
 }
