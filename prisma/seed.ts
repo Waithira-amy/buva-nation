@@ -17,7 +17,8 @@ const categoriesData = [
       "David Mbugua",
       "Simon Benedict Nyamwange",
       "Ronny Tonny",
-      "Benson Barack"
+      "Benson Barack",
+      "Fadhili Amanda"
     ]
   },
   {
@@ -39,7 +40,8 @@ const categoriesData = [
       "Joan Wanjiru Njeri",
       "Mary Njoki Muchiri",
       "Lisha Sophie",
-      "Amanda Jennifer Shahonya"
+      "Amanda Jennifer Shahonya",
+      "Valencia Mwaniga"
     ]
   }
 ];

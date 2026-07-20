@@ -1,14 +1,11 @@
-// STREAMING_CHUNK: Defining Prisma Client and Database connection...
 generator client {
 provider = "prisma-client-js"
 }
 
 datasource db {
 provider = "postgresql"
-
 }
 
-// STREAMING_CHUNK: Defining the Category model...
 model Category {
 id        Int       @id @default(autoincrement())
 name      String    @unique
@@ -17,7 +14,6 @@ nominees  Nominee[]
 createdAt DateTime  @default(now())
 }
 
-// STREAMING_CHUNK: Defining the Nominee model...
 model Nominee {
 id            Int       @id @default(autoincrement())
 name          String
@@ -33,7 +29,6 @@ createdAt     DateTime  @default(now())
 @@unique([name, categoryId])
 }
 
-// STREAMING_CHUNK: Defining the Vote model for M-Pesa transactions...
 model Vote {
 id                 Int      @id @default(autoincrement())
 amount             Int
@@ -46,5 +41,17 @@ status             String   @default("PENDING")
 checkoutRequestId  String?  @unique
 nomineeId          Int
 nominee            Nominee  @relation(fields: [nomineeId], references: [id])
+createdAt          DateTime @default(now())
+}
+
+// 🎟️ NEW TICKET MODEL
+model Ticket {
+id                 String   @id @default(uuid()) // Creates a secure, unguessable string for the QR Code
+ticketType         String   // "FLASH" or "ADVANCED"
+amount             Int
+phoneNumber        String
+mpesaReceiptNumber String?  @unique
+status             String   @default("PENDING") // PENDING, PAID, SCANNED, FAILED
+checkoutRequestId  String?  @unique
 createdAt          DateTime @default(now())
 }

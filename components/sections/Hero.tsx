@@ -10,6 +10,7 @@ export default function Hero() {
       
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center w-full relative z-20">
         
+        {}
         <div className="bg-slate-900/40 backdrop-blur-xl p-8 md:p-10 rounded-3xl border border-white/10 shadow-2xl space-y-6 text-left animate-in slide-in-from-left-8 duration-1000 mt-12 lg:mt-0">
           
           <div className="inline-flex items-center gap-2 bg-purple-500/20 border border-purple-500/30 px-4 py-2 rounded-full text-amber-400 text-[10px] font-bold uppercase tracking-wider shadow-lg">
@@ -24,19 +25,27 @@ export default function Hero() {
             </span>
           </h1>
           
+          {}
           <div className="border-l-4 border-amber-500 pl-4 py-1">
             <p className="text-sm md:text-base text-slate-300 leading-relaxed font-medium">
               Empowering individuals through professional training, recognizing excellence, and creating impactful brand experiences across Africa.
             </p>
           </div>
           
+          {}
           <div className="flex flex-wrap gap-4 pt-4 justify-start">
             <Link href="#categories" className="bg-gradient-to-r from-purple-600 to-purple-800 text-white px-8 py-3.5 rounded-full font-bold tracking-widest uppercase text-xs hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all flex items-center gap-2 border border-purple-400/50 hover:-translate-y-1">
               VOTE NOW <ArrowUpRight className="w-4 h-4" />
             </Link>
+
+            {/* NEW TICKET BUTTON */}
+            <Link href="/tickets" className="bg-transparent text-amber-500 px-8 py-3.5 rounded-full font-bold tracking-widest uppercase text-xs border-2 border-amber-500 hover:bg-amber-500 hover:text-slate-900 transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.1)] hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:-translate-y-1">
+              BUY TICKETS
+            </Link>
           </div>
         </div>
 
+        {}
         <div className="flex w-full items-center justify-start lg:justify-center relative z-10 animate-in slide-in-from-right-8 duration-1000 delay-200">
            <div className="absolute inset-0 bg-amber-500/10 blur-[120px] rounded-full pointer-events-none"></div>
            <div className="w-full max-w-md flex flex-col items-center justify-center p-6 md:p-8 rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-white/10 shadow-2xl relative">
