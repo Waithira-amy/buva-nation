@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
+// Set up the Neon connection properly for Vercel
 const pool = new Pool({ connectionString: process.env.DATABASE_URL as string });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
@@ -11,48 +12,34 @@ export async function POST(req: Request) {
   try {
     const { phoneNumber, amount, ticketType } = await req.json();
 
-    // 1. Check if Flash Sale is sold out (Limit: 50)
-    if (ticketType === "FLASH") {
-        const count = await prisma.ticket.count({
-           where: { ticketType: "FLASH", status: { in: ["PAID", "SCANNED", "PENDING"] } }
-        });
-        if (count >= 50) {
-           return NextResponse.json({ success: false, message: "Flash Sale tickets are sold out! Please select Advanced Tickets." });
-        }
-    }
-
-    // 2. Safaricom Auth (Live API)
+    // 1. Get Safaricom Token (Live URL)
     const auth = Buffer.from(`${process.env.MPESA_CONSUMER_KEY}:${process.env.MPESA_CONSUMER_SECRET}`).toString('base64');
     const tokenRes = await fetch("https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials", {
       headers: { Authorization: `Basic ${auth}` },
       cache: "no-store"
     });
-    
-    if (!tokenRes.ok) return NextResponse.json({ success: false, message: "Failed to authenticate with Safaricom." });
+
+    if (!tokenRes.ok) {
+       console.error("🚨 Safaricom Auth Failed.");
+       return NextResponse.json({ success: false, message: "Safaricom Auth Failed. Check Keys." }, { status: 500 });
+    }
+
     const tokenData = await tokenRes.json();
     const accessToken = tokenData.access_token;
 
-    // 3. Format Phone Number
+    // 2. Format Phone Number
     let formattedPhone = phoneNumber.replace(/[^0-9]/g, '');
     if (formattedPhone.startsWith('0')) formattedPhone = '254' + formattedPhone.slice(1);
     if (formattedPhone.startsWith('+')) formattedPhone = formattedPhone.slice(1);
 
+    // 3. Generate Timestamp & Password
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
     const password = Buffer.from(`${process.env.MPESA_SHORTCODE}${process.env.MPESA_PASSKEY}${timestamp}`).toString('base64');
 
-    // 4. Create PENDING ticket
-    const newTicket = await prisma.ticket.create({
-      data: {
-        ticketType: ticketType,
-        amount: amount,
-        phoneNumber: formattedPhone,
-        status: "PENDING"
-      }
-    });
+    // Callback URL strictly pointing to your live domain
+    const callbackUrl = "https://buvanationafrica.co.ke/api/tickets/callback";
 
-    const callbackUrl = "https://buvanationafrica.co.ke";
-
-    // 5. Trigger STK Push (Reverted to PayBill, matching MTA's successful setup)
+    // 4. Send STK Push Request
     const response = await fetch("https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest", {
         method: "POST",
         headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
@@ -60,30 +47,43 @@ export async function POST(req: Request) {
             BusinessShortCode: process.env.MPESA_SHORTCODE,
             Password: password,
             Timestamp: timestamp,
-            TransactionType: "CustomerPayBillOnline", 
+            TransactionType: "CustomerBuyGoodsOnline", // USING TILL NUMBER
             Amount: amount,
             PartyA: formattedPhone,
-            PartyB: process.env.MPESA_SHORTCODE, 
+            PartyB: process.env.MPESA_SHORTCODE,
             PhoneNumber: formattedPhone,
-            CallBackURL: `${callbackUrl}/api/tickets/callback`, 
-            AccountReference: "Buva Tickets", 
-            TransactionDesc: `Buva ${ticketType} Ticket`
+            CallBackURL: callbackUrl,
+            AccountReference: "Buva Nation Tickets", 
+            TransactionDesc: `YWCA ${ticketType} Ticket`
         })
     });
 
     const data = await response.json();
 
+    // 5. Save PENDING ticket to Database
     if (data.ResponseCode === "0") {
-      await prisma.ticket.update({
-        where: { id: newTicket.id },
-        data: { checkoutRequestId: data.CheckoutRequestID }
+      const newTicket = await prisma.ticket.create({
+        data: { 
+          ticketType: ticketType,
+          amount: amount, 
+          phoneNumber: formattedPhone, 
+          checkoutRequestId: data.CheckoutRequestID, 
+          status: "PENDING" 
+        }
       });
-      return NextResponse.json({ success: true, ticketId: newTicket.id });
+      // Return the newTicket ID so the frontend can redirect to the QR code page
+      return NextResponse.json({ success: true, message: "STK Push sent successfully.", ticketId: newTicket.id });
     } else {
-      return NextResponse.json({ success: false, message: data.errorMessage || "M-Pesa request rejected." });
+      console.error("🚨 Safaricom STK Push Error:", data);
+      return NextResponse.json({ success: false, message: data.errorMessage || "Failed to trigger M-Pesa." });
     }
-  } catch (error) {
-    console.error("Ticket STK Push Error:", error);
-    return NextResponse.json({ success: false, message: "Server error triggering M-Pesa." }, { status: 500 });
+  } catch (error: any) {
+    // THIS is the new logging that will show up in Vercel!
+    console.error("🚨 CRITICAL STK PUSH ERROR:", error.message, error.stack);
+    return NextResponse.json({ 
+      success: false, 
+      message: "Server error triggering M-Pesa.",
+      details: error.message 
+    }, { status: 500 });
   }
 }
