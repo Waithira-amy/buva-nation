@@ -14,7 +14,7 @@ export default function TicketPurchasePage() {
   const [loadingStats, setLoadingStats] = useState(true);
 
   // BUVA PRICES: Ksh 300 (First 50) and Ksh 500
-  const ticketPrices = { FLASH: 1, ADVANCED: 500 };
+  const ticketPrices = { FLASH: 300, ADVANCED: 500 };
   const FLASH_LIMIT = 50;
 
   useEffect(() => {
