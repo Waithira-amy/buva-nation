@@ -8,7 +8,7 @@ import Link from "next/link";
 const categoriesData = [
   { 
     id: 1, 
-    name: "Mr YWCA Nairobi Branch", 
+    name: "Mr Community Culture", 
     nominees: [
       "Stanley Stanix Ochieng", 
       "David Mbugua", 
@@ -20,7 +20,7 @@ const categoriesData = [
   },
   { 
     id: 2, 
-    name: "Miss YWCA Nairobi Branch", 
+    name: "Miss Community Culture", 
     nominees: [
       "Kuria Nancy Njambi", 
       "Ivon Njoki", 
@@ -92,7 +92,7 @@ export default function Categories() {
       const link = document.createElement("a");
       link.href = dataUrl;
       const cleanName = selectedNominee?.replace(/\s+/g, '-');
-      link.download = `YWCA-Nominee-${cleanName}.png`;
+      link.download = `Community culture-Nominee-${cleanName}.png`;
       link.click();
     } catch (error) {
       console.error("Error downloading poster:", error);
@@ -103,7 +103,7 @@ export default function Categories() {
 
   const handleShare = async () => {
     const shareData = {
-      title: 'YWCA Awards by Buva Nation',
+      title: 'Community Culture Awards by Buva Nation',
       text: `Vote for ${selectedNominee} for ${activeCategory?.name}!`,
       url: getAbsoluteShareUrl(),
     };
@@ -201,7 +201,7 @@ export default function Categories() {
                 <div className="h-32 bg-gradient-to-br from-purple-900 to-amber-900 flex items-center justify-center relative">
                   <div className="absolute inset-0 bg-black/20" />
                   <span className="font-serif font-bold text-2xl text-white relative z-10 flex items-center gap-2">
-                    YWCA <span className="text-amber-400">AWARDS</span>
+                    Community Culture <span className="text-amber-400">AWARDS</span>
                   </span>
                 </div>
 

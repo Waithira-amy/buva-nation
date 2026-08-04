@@ -79,10 +79,10 @@ export default function About() {
             <HeartHandshake className="w-6 h-6" />
           </div>
           <h3 className="font-serif text-2xl md:text-3xl font-bold text-white mb-4">
-            Partnering with YWCA Kenya
+            Partnering with Mr and Miss Community Culture
           </h3>
           <p className="text-slate-400 text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
-            Buva Nation proudly hosts the <strong className="text-white">Mr. & Miss YWCA Nairobi Branch Pageant</strong>. More than a talent competition, it is a powerful platform for advocacy, personal transformation, and community engagement. Together, we celebrate beauty with purpose and leadership with integrity.
+            Buva Nation proudly hosts the <strong className="text-white">Mr. & Miss Community Culture</strong>. More than a talent competition, it is a powerful platform for advocacy, personal transformation, and community engagement. Together, we celebrate beauty with purpose and leadership with integrity.
           </p>
         </div>
 

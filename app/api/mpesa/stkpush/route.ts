@@ -69,7 +69,7 @@ export async function POST(req: Request) {
             PhoneNumber: formattedPhone,
             CallBackURL: callbackUrl,
             AccountReference: nomineeRecord.id.toString(),
-            TransactionDesc: "YWCA Awards Voting"
+            TransactionDesc: "Community Culture Awards Voting"
         })
     });
 
