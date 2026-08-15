@@ -1,32 +1,26 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Flame, Ticket as TicketIcon, ShieldCheck, ArrowLeft } from "lucide-react";
+import { Flame, Ticket as TicketIcon, ShieldCheck, ArrowLeft, Users, Crown, AlertCircle } from "lucide-react";
 import Link from "next/link";
+
+type TicketTier = "EARLY_BIRD" | "FLASH_REGULAR" | "REGULAR" | "GROUP_5" | "VIP_FLASH" | "VIP";
 
 export default function TicketPurchasePage() {
   const router = useRouter();
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [ticketType, setTicketType] = useState<"FLASH" | "ADVANCED">("FLASH");
+  const [ticketType, setTicketType] = useState<TicketTier>("FLASH_REGULAR");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
-  const [flashSold, setFlashSold] = useState(0);
-  const [loadingStats, setLoadingStats] = useState(true);
 
-  // BUVA PRICES: Ksh 300 (First 50) and Ksh 500
-  const ticketPrices = { FLASH: 300, ADVANCED: 500 };
-  const FLASH_LIMIT = 50;
-
-  useEffect(() => {
-    fetch("/api/tickets/available", { cache: "no-store" })
-      .then(res => res.json())
-      .then(data => {
-        setFlashSold(data.flashSold || 0);
-        if (data.flashSold >= FLASH_LIMIT) setTicketType("ADVANCED");
-      })
-      .catch(err => console.error("Error fetching stats:", err))
-      .finally(() => setLoadingStats(false));
-  }, []);
+  const ticketPrices: Record<TicketTier, number> = { 
+    EARLY_BIRD: 300, 
+    FLASH_REGULAR: 500, 
+    REGULAR: 1000, 
+    GROUP_5: 3500, 
+    VIP_FLASH: 1500, 
+    VIP: 2500 
+  };
 
   const handlePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,63 +48,73 @@ export default function TicketPurchasePage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100 p-6 font-sans relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-100 p-4 md:p-6 font-sans relative overflow-x-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-slate-950 to-slate-950 -z-10 pointer-events-none" />
 
-      <div className="max-w-md w-full bg-slate-900 border border-white/10 rounded-3xl p-8 shadow-2xl relative">
+      <div className="max-w-2xl w-full bg-slate-900 border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl relative my-12">
         <Link href="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-xs font-bold uppercase tracking-wider mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back Home
         </Link>
 
         <div className="text-center mb-8">
           <h1 className="text-3xl font-serif font-bold mb-2">Get Your <span className="text-cyan-400">Tickets</span></h1>
-          <p className="text-slate-400 text-sm">Secure your spot at the YWCA Awards Hosted by Buva.</p>
+          <p className="text-slate-400 text-sm">Mr & Miss Community Culture Awards Hosted by Buva.</p>
         </div>
 
         <form onSubmit={handlePurchase} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          
+          {/* TICKET SELECTION GRID */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             
-            {/* FLASH SALE */}
-            <button
-              type="button"
-              disabled={loadingStats || flashSold >= FLASH_LIMIT}
-              onClick={() => setTicketType("FLASH")}
-              className={`p-4 rounded-xl border flex flex-col items-center text-center gap-2 transition-all relative overflow-hidden ${
-                ticketType === "FLASH" 
-                  ? "bg-purple-600/20 border-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]" 
-                  : flashSold >= FLASH_LIMIT
-                    ? "bg-black/50 border-white/5 text-white/20 cursor-not-allowed"
-                    : "bg-slate-950 border-white/10 text-slate-500 hover:border-white/30"
-              }`}
-            >
-              <Flame className={`w-6 h-6 ${ticketType === "FLASH" ? "text-purple-400" : flashSold >= FLASH_LIMIT ? "text-white/20" : "text-purple-400/50"}`} />
-              <span className="font-bold text-sm tracking-wider">FLASH SALE</span>
-              {loadingStats ? (
-                <span className="text-xs text-slate-500 animate-pulse">Loading...</span>
-              ) : flashSold >= FLASH_LIMIT ? (
-                <span className="text-[10px] font-black uppercase text-rose-500 tracking-widest mt-1">Sold Out</span>
-              ) : (
-                <span className="text-xs">Ksh {ticketPrices.FLASH}</span>
-              )}
+            {/* Early Bird - CLOSED */}
+            <button type="button" disabled className="p-3 md:p-4 rounded-xl border flex flex-col items-center text-center gap-2 transition-all bg-black/50 border-white/5 text-white/20 cursor-not-allowed">
+              <TicketIcon className="w-6 h-6 text-white/20" />
+              <span className="font-bold text-[10px] md:text-xs tracking-wider line-through">EARLY BIRD</span>
+              <span className="text-[10px] font-black uppercase text-rose-500 tracking-widest mt-1">Closed</span>
             </button>
 
-            {/* ADVANCED */}
-            <button
-              type="button"
-              onClick={() => setTicketType("ADVANCED")}
-              className={`p-4 rounded-xl border flex flex-col items-center text-center gap-2 transition-all ${
-                ticketType === "ADVANCED" 
-                  ? "bg-cyan-500/20 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.3)]" 
-                  : "bg-slate-950 border-white/10 text-slate-500 hover:border-white/30"
-              }`}
-            >
-              <TicketIcon className={`w-6 h-6 ${ticketType === "ADVANCED" ? "text-cyan-400" : "text-cyan-400/50"}`} />
-              <span className="font-bold text-sm tracking-wider">ADVANCED</span>
-              <span className="text-xs">Ksh {ticketPrices.ADVANCED}</span>
+            {/* Flash Regular */}
+            <button type="button" onClick={() => setTicketType("FLASH_REGULAR")} className={`p-3 md:p-4 rounded-xl border flex flex-col items-center text-center gap-2 transition-all ${ticketType === "FLASH_REGULAR" ? "bg-cyan-500/20 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.3)]" : "bg-slate-950 border-white/10 text-slate-500 hover:border-white/30"}`}>
+              <Flame className={`w-6 h-6 ${ticketType === "FLASH_REGULAR" ? "text-cyan-400" : "text-cyan-400/50"}`} />
+              <span className="font-bold text-[10px] md:text-xs tracking-wider">FLASH REG</span>
+              <span className="text-xs">Ksh 500</span>
+              <span className="text-[9px] text-cyan-400 bg-cyan-900/30 px-2 py-0.5 rounded-full">30 Slots</span>
+            </button>
+
+            {/* Regular */}
+            <button type="button" onClick={() => setTicketType("REGULAR")} className={`p-3 md:p-4 rounded-xl border flex flex-col items-center text-center gap-2 transition-all ${ticketType === "REGULAR" ? "bg-purple-500/20 border-purple-400 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]" : "bg-slate-950 border-white/10 text-slate-500 hover:border-white/30"}`}>
+              <TicketIcon className={`w-6 h-6 ${ticketType === "REGULAR" ? "text-purple-400" : "text-purple-400/50"}`} />
+              <span className="font-bold text-[10px] md:text-xs tracking-wider">REGULAR</span>
+              <span className="text-xs">Ksh 1,000</span>
+              <span className="text-[9px] text-purple-400 bg-purple-900/30 px-2 py-0.5 rounded-full">30 Slots</span>
+            </button>
+
+            {/* Group of 5 */}
+            <button type="button" onClick={() => setTicketType("GROUP_5")} className={`p-3 md:p-4 rounded-xl border flex flex-col items-center text-center gap-2 transition-all ${ticketType === "GROUP_5" ? "bg-emerald-500/20 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]" : "bg-slate-950 border-white/10 text-slate-500 hover:border-white/30"}`}>
+              <Users className={`w-6 h-6 ${ticketType === "GROUP_5" ? "text-emerald-400" : "text-emerald-400/50"}`} />
+              <span className="font-bold text-[10px] md:text-xs tracking-wider">GROUP OF 5</span>
+              <span className="text-xs">Ksh 3,500</span>
+              <span className="text-[9px] text-emerald-400 bg-emerald-900/30 px-2 py-0.5 rounded-full">Unlimited</span>
+            </button>
+
+            {/* VIP Flash */}
+            <button type="button" onClick={() => setTicketType("VIP_FLASH")} className={`p-3 md:p-4 rounded-xl border flex flex-col items-center text-center gap-2 transition-all ${ticketType === "VIP_FLASH" ? "bg-amber-500/20 border-amber-400 text-white shadow-[0_0_15px_rgba(245,158,11,0.3)]" : "bg-slate-950 border-white/10 text-slate-500 hover:border-white/30"}`}>
+              <Flame className={`w-6 h-6 ${ticketType === "VIP_FLASH" ? "text-amber-400" : "text-amber-400/50"}`} />
+              <span className="font-bold text-[10px] md:text-xs tracking-wider">VIP FLASH</span>
+              <span className="text-xs">Ksh 1,500</span>
+              <span className="text-[9px] text-amber-400 bg-amber-900/30 px-2 py-0.5 rounded-full">10 Slots</span>
+            </button>
+
+            {/* VIP Regular */}
+            <button type="button" onClick={() => setTicketType("VIP")} className={`p-3 md:p-4 rounded-xl border flex flex-col items-center text-center gap-2 transition-all ${ticketType === "VIP" ? "bg-rose-500/20 border-rose-400 text-white shadow-[0_0_15px_rgba(244,63,94,0.3)]" : "bg-slate-950 border-white/10 text-slate-500 hover:border-white/30"}`}>
+              <Crown className={`w-6 h-6 ${ticketType === "VIP" ? "text-rose-400" : "text-rose-400/50"}`} />
+              <span className="font-bold text-[10px] md:text-xs tracking-wider">VIP</span>
+              <span className="text-xs">Ksh 2,500</span>
+              <span className="text-[9px] text-rose-400 bg-rose-900/30 px-2 py-0.5 rounded-full">Unlimited</span>
             </button>
           </div>
 
-          <div>
+          <div className="pt-4">
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">M-Pesa Phone Number</label>
             <input
               type="tel"
@@ -124,7 +128,7 @@ export default function TicketPurchasePage() {
 
           <button
             type="submit"
-            disabled={loading || (ticketType === "FLASH" && flashSold >= FLASH_LIMIT)}
+            disabled={loading}
             className="w-full bg-gradient-to-r from-purple-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-bold py-4 rounded-xl transition-all disabled:opacity-50 text-sm tracking-widest uppercase shadow-lg flex items-center justify-center gap-2"
           >
             {loading ? "Processing..." : `Pay Ksh ${ticketPrices[ticketType]}`} <ShieldCheck className="w-4 h-4" />

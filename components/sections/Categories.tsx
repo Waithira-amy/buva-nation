@@ -29,7 +29,6 @@ const categoriesData = [
       "Phoebe Kyalo",
       "Grace Wambui Mungai", 
       "Dollar Mesaid Sharp", 
-      "Shirley Valarie Achieng", 
       "Abigail Beline Otieno",
       "Christine Joy Mwangi", 
       "Christine Awino Ojuka", 
@@ -38,7 +37,7 @@ const categoriesData = [
       "Joan Wanjiru Njeri", 
       "Mary Njoki Muchiri", 
       "Lisha Sophie", 
-      "Amanda Jennifer Shahonya",
+      "Margaret Nduta",
       "Valencia Mwaniga"
     ] 
   }
@@ -58,7 +57,6 @@ export default function Categories() {
     return `/vote/${categorySlug}/${nomineeSlug}`;
   };
 
-  // FIXED: Absolute Share URL points to the new domain!
   const getAbsoluteShareUrl = () => {
     if (!activeCategory || !selectedNominee) return "";
     const categorySlug = encodeURIComponent(activeCategory.name.replace(/\s+/g, '-'));
@@ -92,7 +90,7 @@ export default function Categories() {
       const link = document.createElement("a");
       link.href = dataUrl;
       const cleanName = selectedNominee?.replace(/\s+/g, '-');
-      link.download = `Community culture-Nominee-${cleanName}.png`;
+      link.download = `Community-Culture-Nominee-${cleanName}.png`;
       link.click();
     } catch (error) {
       console.error("Error downloading poster:", error);
