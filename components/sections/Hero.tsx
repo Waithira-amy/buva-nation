@@ -34,7 +34,7 @@ export default function Hero() {
           
           {}
           <div className="flex flex-wrap gap-4 pt-4 justify-start">
-            <Link href="#categories" className="bg-gradient-to-r from-purple-600 to-purple-800 text-white px-8 py-3.5 rounded-full font-bold tracking-widest uppercase text-xs hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all flex items-center gap-2 border border-purple-400/50 hover:-translate-y-1">
+            <Link href="#categories" className="bg-gradient-to-r from-blue-600 to-purple-800 text-white px-8 py-3.5 rounded-full font-bold tracking-widest uppercase text-xs hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] transition-all flex items-center gap-2 border border-purple-400/50 hover:-translate-y-1">
               VOTE NOW <ArrowUpRight className="w-4 h-4" />
             </Link>
 
