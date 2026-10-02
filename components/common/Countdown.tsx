@@ -1,3 +1,4 @@
+// Countdown.tsx
 "use client";
 import { useState, useEffect } from "react";
 
@@ -8,8 +9,8 @@ export default function Countdown() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Deadline extended by 30 days: September 30th, 2026 at 23:59:59
-    const target = new Date("2026-09-30T23:59:59").getTime();
+    // Hardcoded to exactly 6 hours from October 2, 2026, 12:11 PM
+    const target = new Date("2026-10-02T18:11:00").getTime();
 
     const checkTime = () => {
       const now = new Date().getTime();
@@ -72,7 +73,7 @@ export default function Countdown() {
       </div>
 
       <p className="text-slate-500 text-[10px] tracking-widest uppercase text-center font-bold mt-6">
-        September 30th, 2026
+        October 2nd, 2026 - 6:11 PM
       </p>
     </div>
   );

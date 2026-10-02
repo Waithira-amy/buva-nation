@@ -36,10 +36,12 @@ async function main() {
 
   // 2. Add Margaret Nduta
   const missCat = await prisma.category.findFirst({
-    where: { name: 'Miss Community Culture' }
+    where: { name: { contains: 'Miss Community Culture', mode: 'insensitive' } }
   });
 
   if (missCat) {
+    const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
+    
     await prisma.nominee.upsert({
       where: { slug: 'margaret-nduta' },
       update: { categoryId: missCat.id },
@@ -47,9 +49,10 @@ async function main() {
         name: 'Margaret Nduta',
         slug: 'margaret-nduta',
         categoryId: missCat.id,
+        pinCode: randomPin
       }
     });
-    console.log(`✅ Successfully added "Margaret Nduta" to the "Miss Community Culture" category.`);
+    console.log(`✅ Successfully added "Margaret Nduta" to the "Miss Community Culture" category. Her PIN is: ${randomPin}`);
   } else {
     console.log(`❌ Error: Could not find "Miss Community Culture" category to add Margaret.`);
   }

@@ -1,6 +1,7 @@
+// Navbar.tsx
 "use client";
 import { useState, useEffect } from "react";
-import { Menu, X, ShieldCheck, Sun, Moon } from "lucide-react";
+import { Menu, X, ShieldCheck, Sun, Moon, Ticket, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
@@ -48,6 +49,12 @@ export default function Navbar() {
           <a href="#about" className="hover:text-purple-400 transition uppercase tracking-wider">About Us</a>
           <a href="#team" className="hover:text-purple-400 transition uppercase tracking-wider">The Team</a>
           <a href="#categories" className="hover:text-amber-400 transition uppercase tracking-wider">Awards</a>
+          <Link href="/tickets" className="hover:text-emerald-400 transition uppercase tracking-wider flex items-center gap-1.5">
+             Buy Tickets
+          </Link>
+          <Link href="/admin" className="hover:text-cyan-400 transition uppercase tracking-wider flex items-center gap-1.5">
+             Admin
+          </Link>
           
           <div className="flex items-center gap-4 border-l border-white/20 pl-6">
             {mounted && (
@@ -83,6 +90,12 @@ export default function Navbar() {
           <a href="#about" onClick={() => setIsOpen(false)} className="text-lg font-medium text-white pb-2 border-b border-white/10">About BUVA</a>
           <a href="#team" onClick={() => setIsOpen(false)} className="text-lg font-medium text-white pb-2 border-b border-white/10">The Team</a>
           <a href="#categories" onClick={() => setIsOpen(false)} className="text-lg font-medium text-white pb-2 border-b border-white/10">Award Categories</a>
+          <Link href="/tickets" onClick={() => setIsOpen(false)} className="text-lg font-medium text-emerald-400 pb-2 border-b border-white/10 flex items-center gap-2">
+            <Ticket className="w-5 h-5"/> Buy Tickets
+          </Link>
+          <Link href="/admin" onClick={() => setIsOpen(false)} className="text-lg font-medium text-cyan-400 pb-2 border-b border-white/10 flex items-center gap-2">
+            <LayoutDashboard className="w-5 h-5"/> Admin Dashboard
+          </Link>
           <Link href="/portal" onClick={() => setIsOpen(false)} className="text-lg font-medium text-purple-400 text-left pb-2 border-b border-white/10 flex items-center gap-2">
              <ShieldCheck className="w-5 h-5"/> Nominee Portal
           </Link>
