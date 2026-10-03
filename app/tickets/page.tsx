@@ -1,4 +1,3 @@
-// app/tickets/page.tsx
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -10,6 +9,7 @@ type TicketTier = "EARLY_BIRD" | "FLASH_REGULAR" | "REGULAR" | "GROUP_5" | "VIP_
 export default function TicketPurchasePage() {
   const router = useRouter();
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [guestName, setGuestName] = useState(""); // 👈 New state for Admin Name Input
   const [ticketType, setTicketType] = useState<TicketTier>("FLASH_REGULAR");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -33,7 +33,7 @@ export default function TicketPurchasePage() {
     if (passcode === "BUVACOMP26") {
       setIsUnlocked(true);
       setTicketType("COMPLIMENTARY");
-      setMessage({ type: "success", text: "Complimentary tier unlocked!" });
+      setMessage({ type: "success", text: "Admin Access: Complimentary tier unlocked!" });
     } else {
       setMessage({ type: "error", text: "Invalid passcode." });
     }
@@ -44,15 +44,26 @@ export default function TicketPurchasePage() {
     setLoading(true);
     setMessage({ type: "", text: "" });
 
-    // Handle Complimentary Ticket logic bypassing M-Pesa
+    // Handle Complimentary Ticket (Bypasses M-Pesa)
     if (ticketType === "COMPLIMENTARY") {
       if (compTicketsLeft > 0) {
         try {
-          // Replace with actual API call to update DB: await fetch('/api/tickets/complimentary', { ... })
-          setCompTicketsLeft(prev => prev - 1);
-          setMessage({ type: "success", text: "Complimentary Ticket Claimed Successfully!" });
+          const res = await fetch('/api/tickets/complimentary', {
+            method: 'POST',
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ guestName, phoneNumber })
+          });
+          
+          const data = await res.json();
+          if (data.success) {
+            setCompTicketsLeft(prev => prev - 1);
+            setMessage({ type: "success", text: `Ticket generated for ${guestName}!` });
+            setTimeout(() => router.push(`/tickets/${data.ticketId}`), 1500);
+          } else {
+            setMessage({ type: "error", text: "Failed to generate ticket in database." });
+          }
         } catch (err) {
-          setMessage({ type: "error", text: "Error claiming ticket." });
+          setMessage({ type: "error", text: "Server error generating ticket." });
         }
       } else {
         setMessage({ type: "error", text: "All complimentary tickets have been claimed." });
@@ -61,6 +72,7 @@ export default function TicketPurchasePage() {
       return;
     }
 
+    // Standard M-Pesa Ticket Logic
     try {
       const res = await fetch("/api/tickets/stkpush", {
         method: "POST",
@@ -97,9 +109,7 @@ export default function TicketPurchasePage() {
 
         <form onSubmit={handlePurchase} className="space-y-6">
           
-          {/* TICKET SELECTION GRID */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            
             <button type="button" disabled className="p-3 md:p-4 rounded-xl border flex flex-col items-center text-center gap-2 transition-all bg-black/50 border-white/5 text-white/20 cursor-not-allowed">
               <TicketIcon className="w-6 h-6 text-white/20" />
               <span className="font-bold text-[10px] md:text-xs tracking-wider line-through">EARLY BIRD</span>
@@ -141,44 +151,66 @@ export default function TicketPurchasePage() {
               <span className="text-[9px] text-rose-400 bg-rose-900/30 px-2 py-0.5 rounded-full">Unlimited</span>
             </button>
 
-            {/* Hidden Complimentary Tier - Only shows when unlocked */}
+            {/* Hidden Complimentary Tier */}
             {isUnlocked && (
                <button type="button" onClick={() => setTicketType("COMPLIMENTARY")} className={`p-3 md:p-4 rounded-xl border flex flex-col items-center text-center gap-2 transition-all ${ticketType === "COMPLIMENTARY" ? "bg-indigo-500/20 border-indigo-400 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)]" : "bg-slate-950 border-white/10 text-slate-500 hover:border-white/30"}`}>
                <CheckCircle2 className={`w-6 h-6 ${ticketType === "COMPLIMENTARY" ? "text-indigo-400" : "text-indigo-400/50"}`} />
                <span className="font-bold text-[10px] md:text-xs tracking-wider">COMPLIMENTARY</span>
-               <span className="text-xs">Free</span>
+               <span className="text-xs">Admin</span>
                <span className="text-[9px] text-indigo-400 bg-indigo-900/30 px-2 py-0.5 rounded-full">{compTicketsLeft} Left</span>
              </button>
             )}
           </div>
 
-          <div className="pt-4">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-              {ticketType === "COMPLIMENTARY" ? "Confirm Phone Number" : "M-Pesa Phone Number"}
-            </label>
-            <input
-              type="tel"
-              required
-              placeholder="e.g., 0712345678"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-cyan-500/50 transition-all shadow-inner"
-            />
+          <div className="pt-4 space-y-4">
+            {/* Guest Name Input (Only visible when generating a Complimentary Ticket) */}
+            {ticketType === "COMPLIMENTARY" && (
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-indigo-400 mb-2">
+                  Guest Name (Admin Only)
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., Jane Doe"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  className="w-full bg-slate-950 border border-indigo-500/30 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-indigo-500 transition-all shadow-inner"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                {ticketType === "COMPLIMENTARY" ? "Guest Phone Number" : "M-Pesa Phone Number"}
+              </label>
+              <input
+                type="tel"
+                required
+                placeholder="e.g., 0712345678"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-cyan-500/50 transition-all shadow-inner"
+              />
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={loading || (ticketType === "COMPLIMENTARY" && compTicketsLeft === 0)}
-            className="w-full bg-gradient-to-r from-purple-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-bold py-4 rounded-xl transition-all disabled:opacity-50 text-sm tracking-widest uppercase shadow-lg flex items-center justify-center gap-2"
+            className={`w-full font-bold py-4 rounded-xl transition-all disabled:opacity-50 text-sm tracking-widest uppercase shadow-lg flex items-center justify-center gap-2 ${
+              ticketType === "COMPLIMENTARY" 
+                ? "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white"
+                : "bg-gradient-to-r from-purple-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white"
+            }`}
           >
-            {loading ? "Processing..." : ticketType === "COMPLIMENTARY" ? "Claim Ticket" : `Pay Ksh ${ticketPrices[ticketType]}`} <ShieldCheck className="w-4 h-4" />
+            {loading ? "Processing..." : ticketType === "COMPLIMENTARY" ? "Generate Free Ticket" : `Pay Ksh ${ticketPrices[ticketType]}`} <ShieldCheck className="w-4 h-4" />
           </button>
 
-          {/* Hidden Passcode Input */}
           {!isUnlocked && (
             <div className="mt-6 pt-6 border-t border-white/5 flex flex-col items-center gap-3">
               <span className="text-xs text-slate-500 font-medium flex items-center gap-2">
-                <KeyRound className="w-3 h-3" /> Have a complimentary passcode?
+                <KeyRound className="w-3 h-3" /> Admin Dashboard Link
               </span>
               <div className="flex gap-2">
                 <input

@@ -50,6 +50,7 @@ id                 String   @id @default(uuid()) // Creates a secure, unguessabl
 ticketType         String   // "FLASH" or "ADVANCED"
 amount             Int
 phoneNumber        String
+guestName          String?
 mpesaReceiptNumber String?  @unique
 status             String   @default("PENDING") // PENDING, PAID, SCANNED, FAILED
 checkoutRequestId  String?  @unique
