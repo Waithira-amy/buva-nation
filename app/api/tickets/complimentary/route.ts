@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient();
+// 1. Force Next.js to run this dynamically on request, NOT during the Vercel build
+export const dynamic = "force-dynamic";
+
+// 2. Secure Neon Serverless Database Connection Adapter
+const connectionString = `${process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL}`;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 export async function POST(req: Request) {
   try {
