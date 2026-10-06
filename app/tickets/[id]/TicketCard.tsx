@@ -1,6 +1,5 @@
 "use client";
 import { CheckCircle2, AlertTriangle, Download } from "lucide-react";
-// Note: If you are using a different QR code package (like qrcode.react), adjust this import!
 import QRCode from "react-qr-code"; 
 
 export default function TicketCard({ ticket, scanUrl }: { ticket: any, scanUrl: string }) {
@@ -25,7 +24,7 @@ export default function TicketCard({ ticket, scanUrl }: { ticket: any, scanUrl: 
       {/* Ticket Body */}
       <div className="p-6 w-full flex flex-col items-center">
 
-        {/* 2. NEW: GUEST NAME DISPLAY */}
+        {/* 2. GUEST NAME DISPLAY */}
         {ticket?.guestName && (
           <div className="mb-5 text-center w-full bg-slate-950/50 rounded-xl py-3 border border-white/5">
             <p className="text-cyan-400 text-[9px] font-bold uppercase tracking-widest mb-1 opacity-80">
@@ -67,7 +66,7 @@ export default function TicketCard({ ticket, scanUrl }: { ticket: any, scanUrl: 
         </p>
       </div>
 
-      {/* Download Button */}
+      {/* 3. YOUR ORIGINAL DOWNLOAD BUTTON */}
       <button 
         onClick={() => window.print()} 
         className="w-11/12 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg text-xs tracking-widest uppercase flex items-center justify-center gap-2"
