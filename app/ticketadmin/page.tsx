@@ -1,11 +1,10 @@
 import { PrismaClient } from "@prisma/client";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { 
   Ticket as TicketIcon, CheckCircle2, XCircle, Clock, 
   RefreshCw, QrCode, CreditCard, Activity 
 } from "lucide-react";
-
-// Initialize Prisma
-const prisma = new PrismaClient();
 
 // Force Next.js to fetch live data on every load (No caching)
 export const dynamic = "force-dynamic";
@@ -14,15 +13,27 @@ export default async function TicketAdminDashboard() {
   let tickets: any[] = [];
   
   try {
-    // Fetch all tickets safely. We use (prisma as any) just in case your model is named differently
-    tickets = await (prisma as any).ticket.findMany({
-      orderBy: { id: 'desc' }
-    });
+    // 1. Initialize Prisma INSIDE the function so Next.js doesn't crash during 'yarn build'
+    // 2. Use your exact Neon adapter configuration
+    const connectionString = process.env.DATABASE_URL;
+    
+    if (connectionString) {
+      const pool = new Pool({ connectionString });
+      const adapter = new PrismaPg(pool);
+      const prisma = new PrismaClient({ adapter });
+      
+      // Fetch live tickets
+      tickets = await (prisma as any).ticket.findMany({
+        orderBy: { id: 'desc' }
+      });
+    } else {
+      console.warn("DATABASE_URL is missing. Check your environment variables.");
+    }
   } catch (error) {
     console.error("Database connection error:", error);
   }
 
-  // Calculate live statistics
+  // Calculate live statistics safely
   const paid = tickets.filter((t) => t.status === "PAID");
   const scanned = tickets.filter((t) => t.status === "SCANNED");
   const failed = tickets.filter((t) => t.status === "FAILED");
@@ -54,7 +65,6 @@ export default async function TicketAdminDashboard() {
                 KES {totalRevenue.toLocaleString()}
               </p>
             </div>
-            {/* Standard anchor tag forces a hard reload of the server component */}
             <a 
               href="/ticketadmin" 
               className="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-xl transition-colors shadow-lg flex items-center gap-2 text-xs font-bold uppercase tracking-widest"
@@ -156,7 +166,7 @@ export default async function TicketAdminDashboard() {
   );
 }
 
-// Reusable UI Components for the Dashboard
+// Reusable UI Components
 function StatCard({ title, count, icon, border, bg }: { title: string, count: number, icon: any, border: string, bg: string }) {
   return (
     <div className={`p-6 rounded-2xl border ${border} ${bg} flex flex-col justify-center`}>
